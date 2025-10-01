@@ -1,0 +1,77 @@
+#include <GL/glut.h>
+#include <stdlib.h>
+#include <time.h>
+
+bool isSinking = false;  // Flag to indicate if the ship is sinking
+float shipYPos = 0.0f;   // Y-coordinate of the ship
+float lightPosition[] = { 2.0f, 5.0f, 5.0f, 1.0f };  // Position of the light source
+
+// Function to handle key press events
+void handleKeypress(unsigned char key, int x, int y) {
+    if (key == 's') {
+        isSinking = true;
+    }
+}
+
+// Function to handle rendering
+void renderScene() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set up camera
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0f, 1.0f, 0.1f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(0.0f, 0.0f, 10.0f,
+              0.0f, 0.0f, 0.0f,
+              0.0f, 1.0f, 0.0f);
+
+    // Set up lighting
+    GLfloat ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    GLfloat diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat shininess[] = { 50.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
+
+    // Draw the ship
+    glPushMatrix();
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glTranslatef(0.0f, shipYPos, 0.0f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+
+    glFlush();
+}
+
+// Function to handle update in each frame
+void update(int value) {
+    if (isSinking) {
+        shipYPos -= 0.01f;  // Update ship's Y-coordinate to simulate sinking
+    }
+
+    glutPostRedisplay();  // Trigger a scene update
+    glutTimerFunc(16, update, 0);  // Call update() after 16 milliseconds
+}
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize(800, 600);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("Sinking Ship Scenery Simulation");
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gluOrtho2D(-2, 2, -2, 2);
+    glutDisplayFunc(renderScene);
+    glutKeyboardFunc(handleKeypress);
+    glutTimerFunc(0, update, 0);
+    glutMainLoop();
+    return 0;
+}
